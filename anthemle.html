@@ -17,15 +17,29 @@
 
     <main>
 
-        <section>
+        <section id="game">
             <h2>Today's Anthem</h2>
+<div id="roundStatus">
+    <p>New round!</p>
+</div>
+            <div id="anthemControls">
+<button id="playButton">▶ Play Anthem</button></div>
 
-            <button>▶ Play Anthem</button>
-            <input type="text" id="guessInput" placeholder="Enter your guess">
+<div id="guessControls">
+    <input type="text" id="guessInput" placeholder="Enter your guess">
+    <button id="guessButton">Guess</button>
+</div>
+<div id="attempts">
+    <p>Attempts remaining: <span id="attemptsRemaining">6</span></p>
+</div>
+           <div id="feedback">
+    <p id="message"></p>
+</div>
 
-            <button id="guessButton">Guess</button>
-
-            <p id="message"></p>
+<div id="history">
+    <h3>Guess History</h3>
+    <div id="guessHistory"></div>
+</div>
         </section>
 
 
