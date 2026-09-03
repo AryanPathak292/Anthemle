@@ -5,13 +5,14 @@ const guessInput = document.getElementById("guessInput");
 const message = document.getElementById("message");
 const guessHistory = document.getElementById("guessHistory");
 const attemptsRemaining = document.getElementById("attemptsRemaining");
+const scoreValue = document.getElementById("scoreValue");
 const game = {
     currentCountry: null,
     audio: null,
     attempts: 6,
     status: "playing",
-
-    guesses: []
+    guesses: [],
+    score: 0
 };
 function renderGuessHistory() {
 
@@ -40,6 +41,10 @@ function newRound() {
     game.currentCountry = countries[randomIndex];
     game.audio = new Audio(game.currentCountry.audio);
 
+    playbutton.textContent = "▶ Play Anthem";
+    game.audio.addEventListener("ended", function () {
+    playbutton.textContent = "▶ Play Anthem";
+});
     game.attempts = 6;
     attemptsRemaining.textContent = game.attempts;
 
@@ -53,8 +58,10 @@ function newRound() {
 
     guessButton.disabled = false;
     guessInput.disabled = false;
+    playbutton.disabled = false;
 
     roundStatus.textContent = "🎵 New round!";
+    guessInput.focus();
 }
 
 // Play anthem
@@ -64,7 +71,13 @@ playbutton.addEventListener("click", function () {
         return;
     }
 
-    game.audio.play();
+    if (game.audio.paused) {
+        game.audio.play();
+        playbutton.textContent = "⏸ Pause Anthem";
+    } else {
+        game.audio.pause();
+        playbutton.textContent = "▶ Play Anthem";
+    }
 });
 // Play anthem
 function submitGuess() {
@@ -98,15 +111,22 @@ function submitGuess() {
 
     game.audio.pause();
     game.audio.currentTime = 0;
+    playbutton.textContent = "▶ Play Anthem";
 
     if (isCorrect) {
 
-        game.status = "won";
+    const scoreByAttempt = [100, 80, 60, 40, 20, 10];
+    const attemptNumber = game.guesses.length;
 
+    game.score += scoreByAttempt[attemptNumber - 1];
+    scoreValue.textContent = game.score;
+
+     game.status = "won";
         roundStatus.textContent = "🎉 Correct!";
         message.textContent = "You got it!";
         guessButton.disabled = true;
         guessInput.disabled = true;
+        playbutton.disabled = true;
 
         setTimeout(newRound, 1000);
     }
@@ -131,13 +151,9 @@ function submitGuess() {
             setTimeout(newRound, 1500);
         }
 
-        else {
-
-            roundStatus.textContent =
-                `❌ Incorrect — ${game.attempts} attempts remaining`;
-
-            message.textContent = "Try again!";
-        }
+        else roundStatus.textContent = "🎵 Keep listening!";
+message.textContent =
+    `❌ Incorrect! ${game.attempts} attempts remaining. Replay the anthem if needed`;
     }
 }
 // Guess button + Enter key
