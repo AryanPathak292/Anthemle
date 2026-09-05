@@ -1,0 +1,216 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #111827;
+    color: #e5e7eb;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    text-align: center;
+    padding: 50px 20px 25px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 3rem;
+    letter-spacing: 4px;
+}
+
+header p {
+    margin-top: 12px;
+    color: #9ca3af;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+     padding-bottom: 60px;
+}
+
+#game {
+    width: 100%;
+    max-width: 600px;
+    padding: 32px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 16px;
+}
+/* Interactive controls */
+
+button {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#playButton {
+    width: 100%;
+    background: #2563eb;
+    color: white;
+}
+
+#playButton:hover {
+    background: #1d4ed8;
+}
+
+#guessControls {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#guessInput {
+    flex: 1;
+    padding: 12px 14px;
+    border: 1px solid #4b5563;
+    border-radius: 10px;
+    background: #111827;
+    color: #e5e7eb;
+    font-size: 1rem;
+    outline: none;
+}
+
+#guessInput:focus {
+    border-color: #22c55e;
+}
+
+#guessButton {
+    background: #22c55e;
+    color: #052e16;
+}
+
+#guessButton:hover {
+    background: #16a34a;
+}
+/* Game information */
+
+#roundStatus {
+    text-align: center;
+    margin: 24px 0 10px;
+    font-weight: 600;
+}
+
+#attempts,
+#score {
+    text-align: center;
+    color: #9ca3af;
+}
+
+#attempts p,
+#score p {
+    margin: 8px 0;
+}
+
+#attemptsRemaining,
+#scoreValue {
+    color: #e5e7eb;
+    font-weight: 700;
+}
+
+#feedback {
+    text-align: center;
+    min-height: 30px;
+    margin: 18px 0;
+}
+
+#message {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Guess history */
+
+#history {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #374151;
+}
+
+#history h3 {
+    margin: 0 0 14px;
+    font-size: 1rem;
+    color: #d1d5db;
+}
+
+.guess {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #111827;
+    border-radius: 8px;
+    color: #d1d5db;
+}
+@media (max-width: 600px) {
+
+    header {
+        padding-top: 35px;
+    }
+
+    header h1 {
+        font-size: 2.3rem;
+    }
+
+    #game {
+        padding: 22px;
+    }
+
+    #guessControls {
+        flex-direction: column;
+    }
+
+    #guessButton {
+        width: 100%;
+    }
+}
+/* Final visual polish */
+
+#game h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 28px;
+    font-size: 1.3rem;
+    color: #d1d5db;
+}
+
+#anthemControls {
+    margin-bottom: 20px;
+}
+
+#roundStatus {
+    min-height: 24px;
+}
+
+#message {
+    color: #d1d5db;
+}
+
+#score {
+    margin-top: 4px;
+}
+
+.guess {
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.guess:hover {
+    background: #172033;
+    transform: translateX(3px);
+}
+/* Game stats */
+
+#attempts,
+#score {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+#attempts p,
+#score p {
+    margin: 6px 0;
+}
