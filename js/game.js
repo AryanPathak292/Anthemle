@@ -93,20 +93,54 @@ function loadDailyProgress() {
     // Same day → resume progress
     if (progress.date === today) {
 
-        game.currentAnthem = progress.currentAnthem;
-        game.score = progress.score;
+        game.currentAnthem =
+            progress.currentAnthem;
 
-        scoreValue.textContent = game.score;
-        streakValue.textContent = game.streak;
+        game.score =
+            progress.score;
+
+        game.streak =
+            progress.streak || 0;
+
+        game.completedToday =
+            progress.completed;
+
+        scoreValue.textContent =
+            game.score;
+
+        streakValue.textContent =
+            game.streak;
+
         return;
     }
 
     // New day → start fresh
     game.currentAnthem = 0;
     game.score = 0;
+    game.completedToday = false;
 
-    scoreValue.textContent = game.score;
-    streakValue.textContent = game.streak;
+    // Check if yesterday's challenge was completed
+    const yesterday = new Date();
+
+    yesterday.setDate(
+        yesterday.getDate() - 1
+    );
+
+    if (
+        progress.completed &&
+        progress.date === yesterday.toDateString()
+    ) {
+        game.streak =
+            progress.streak;
+    } else {
+        game.streak = 0;
+    }
+
+    scoreValue.textContent =
+        game.score;
+
+    streakValue.textContent =
+        game.streak;
 }
 // -----------------------------------
 // Render guess history
@@ -168,14 +202,6 @@ function newRound() {
 
         return;
     }
-
-
-    // Select today's current anthem
-    game.currentCountry =
-        game.dailyCountries[game.currentAnthem];
-
-    game.audio =
-        new Audio(game.currentCountry.audio);
 
 
 
