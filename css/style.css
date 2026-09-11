@@ -214,3 +214,61 @@ button {
 #score p {
     margin: 6px 0;
 }
+#dailyResult {
+    display: none;
+}
+/* Daily Result */
+
+#dailyResult {
+    margin-top: 30px;
+    padding: 28px;
+    text-align: center;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 14px;
+}
+
+#dailyResult h2 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    color: #e5e7eb;
+}
+
+#resultScore {
+    margin: 20px 0;
+}
+
+#resultScore p {
+    margin: 0 0 6px;
+    color: #9ca3af;
+}
+
+#resultScore strong {
+    font-size: 2.5rem;
+    color: #22c55e;
+}
+
+#resultMessage {
+    margin: 20px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+#resultStreak {
+    margin: 18px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+#resultTomorrow {
+    margin-bottom: 0;
+    color: #9ca3af;
+    font-size: 0.95rem;
+}
+#game.completed #anthemControls,
+#game.completed #guessControls,
+#game.completed #attempts,
+#game.completed #feedback,
+#game.completed #history {
+    display: none;
+}

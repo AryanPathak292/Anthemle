@@ -7,7 +7,10 @@ const guessHistory = document.getElementById("guessHistory");
 const attemptsRemaining = document.getElementById("attemptsRemaining");
 const scoreValue = document.getElementById("scoreValue");
 const streakValue = document.getElementById("streakValue");
-
+const dailyResult = document.getElementById("dailyResult");
+const resultScore = document.querySelector("#resultScore strong");
+const resultMessage = document.querySelector("#resultMessage p");
+const resultStreakValue = document.getElementById("resultStreakValue");
 const game = {
     currentCountry: null,
     audio: null,
@@ -111,6 +114,50 @@ function loadDailyProgress() {
         streakValue.textContent =
             game.streak;
 
+        // Challenge already completed → restore result screen
+        if (game.completedToday) {
+
+            game.status = "completed";
+
+            dailyResult.style.display = "block";
+
+            document
+                .getElementById("game")
+                .classList.add("completed");
+
+            resultScore.textContent =
+                `${game.score} / 500`;
+
+            resultStreakValue.textContent =
+                game.streak;
+
+            if (game.score === 500) {
+
+                resultMessage.textContent =
+                    "🏆 Perfect Day!";
+
+            } else if (game.score >= 400) {
+
+                resultMessage.textContent =
+                    "🔥 Excellent Run!";
+
+            } else if (game.score >= 200) {
+
+                resultMessage.textContent =
+                    "👍 Good Run!";
+
+            } else {
+
+                resultMessage.textContent =
+                    "💪 Challenge Complete!";
+            }
+
+            roundStatus.textContent =
+                "🏆 Daily Challenge Complete!";
+
+            return;
+        }
+
         return;
     }
 
@@ -130,9 +177,12 @@ function loadDailyProgress() {
         progress.completed &&
         progress.date === yesterday.toDateString()
     ) {
+
         game.streak =
             progress.streak;
+
     } else {
+
         game.streak = 0;
     }
 
@@ -141,30 +191,6 @@ function loadDailyProgress() {
 
     streakValue.textContent =
         game.streak;
-}
-// -----------------------------------
-// Render guess history
-// -----------------------------------
-
-function renderGuessHistory() {
-
-    guessHistory.innerHTML = "";
-
-    game.guesses.forEach(function (guess, index) {
-
-        const guessElement =
-            document.createElement("div");
-
-        const result =
-            guess.correct ? "✓" : "❌";
-
-        guessElement.textContent =
-            `Attempt ${index + 1}: ${guess.country} ${result}`;
-
-        guessElement.classList.add("guess");
-
-        guessHistory.appendChild(guessElement);
-    });
 }
 
 
@@ -179,29 +205,59 @@ function newRound() {
 
 
     // Check if all 5 anthems are completed
-    if (game.currentAnthem >= 5) {
+   game.status = "completed";
 
-        game.status = "completed";
+if (!game.completedToday) {
+    game.streak++;
+    streakValue.textContent = game.streak;
+    game.completedToday = true;
+}
 
-    if (!game.completedToday) {
-        game.streak++;
-        streakValue.textContent = game.streak;
-        game.completedToday = true;
-    }
+saveDailyProgress();
 
-        saveDailyProgress();
-        roundStatus.textContent =
-            "🏆 Daily Challenge Complete!";
+// Hide the normal game UI
+playbutton.disabled = true;
+guessButton.disabled = true;
+guessInput.disabled = true;
 
-        message.textContent =
-            `Final Score: ${game.score} / 500`;
+// Show the result screen
+dailyResult.style.display = "block";
+document.getElementById("game").classList.add("completed");
+// Fill result data
+resultScore.textContent =
+    `${game.score} / 500`;
 
-        guessButton.disabled = true;
-        guessInput.disabled = true;
-        playbutton.disabled = true;
+resultStreakValue.textContent =
+    game.streak;
 
-        return;
-    }
+// Performance message
+if (game.score === 500) {
+
+    resultMessage.textContent =
+        "🏆 Perfect Day!";
+
+} else if (game.score >= 400) {
+
+    resultMessage.textContent =
+        "🔥 Excellent Run!";
+
+} else if (game.score >= 200) {
+
+    resultMessage.textContent =
+        "👍 Good Run!";
+
+} else {
+
+    resultMessage.textContent =
+        "💪 Challenge Complete!";
+}
+
+roundStatus.textContent =
+    "🏆 Daily Challenge Complete!";
+
+message.textContent = "";
+
+return;
 
 
 
