@@ -600,13 +600,19 @@ function submitGuess() {
         game.status =
             "won";
 
+roundStatus.textContent =
+    "🎉 Correct!";
 
-        roundStatus.textContent =
-            "🎉 Correct!";
+if (game.currentAnthem < 4) {
 
+    message.textContent =
+        `You got it! Moving to Anthem ${game.currentAnthem + 2}...`;
 
-        message.textContent =
-            "You got it!";
+} else {
+
+    message.textContent =
+        "You got it! Calculating your final result...";
+}
 
 
         // Disable controls temporarily
@@ -658,9 +664,16 @@ function submitGuess() {
             roundStatus.textContent =
                 "💀 Round over!";
 
+if (game.currentAnthem < 4) {
 
-            message.textContent =
-                `The answer was ${game.currentCountry.name}.`;
+    message.textContent =
+        `The answer was ${game.currentCountry.name}. Moving to Anthem ${game.currentAnthem + 2}...`;
+
+} else {
+
+    message.textContent =
+        `The answer was ${game.currentCountry.name}. Calculating your final result...`;
+}
 
 
             // Disable controls
@@ -696,8 +709,16 @@ function submitGuess() {
             roundStatus.textContent =
                 `🎵 Anthem ${game.currentAnthem + 1} / 5`;
 
-            message.textContent =
-                `❌ Incorrect! ${game.attempts} attempts remaining.`;
+            if (game.currentAnthem < 4) {
+
+                message.textContent =
+                    `❌ Incorrect! ${game.attempts} attempts remaining. Moving to Anthem ${game.currentAnthem + 2}...`;
+
+            } else {
+
+                message.textContent =
+                    `❌ Incorrect! ${game.attempts} attempts remaining. Calculating your final result...`;
+            }
         }
     }
 }
@@ -723,11 +744,14 @@ guessInput.addEventListener(
 
         if (event.key === "Enter") {
 
+            if (game.status !== "playing") {
+                return;
+            }
+
             submitGuess();
         }
     }
 );
-
 
 // -----------------------------------
 // Start today's challenge
