@@ -11,6 +11,7 @@ const dailyResult = document.getElementById("dailyResult");
 const resultScore = document.querySelector("#resultScore strong");
 const resultMessage = document.querySelector("#resultMessage p");
 const resultStreakValue = document.getElementById("resultStreakValue");
+
 const game = {
     currentCountry: null,
     audio: null,
@@ -28,6 +29,7 @@ const game = {
 // -----------------------------------
 // Generate today's 5 countries
 // -----------------------------------
+
 function getDailyCountries() {
 
     const today = new Date();
@@ -38,6 +40,7 @@ function getDailyCountries() {
     let seed = 0;
 
     for (let i = 0; i < dateString.length; i++) {
+
         seed =
             (seed * 31 + dateString.charCodeAt(i)) % 100000;
     }
@@ -63,14 +66,29 @@ function getDailyCountries() {
 
     return shuffledCountries.slice(0, 5);
 }
+
+
+// -----------------------------------
+// Save daily progress
+// -----------------------------------
+
 function saveDailyProgress() {
 
     const progress = {
+
         date: new Date().toDateString(),
-        currentAnthem: game.currentAnthem,
-        score: game.score,
-        completed: game.status === "completed",
-        streak: game.streak
+
+        currentAnthem:
+            game.currentAnthem,
+
+        score:
+            game.score,
+
+        completed:
+            game.status === "completed",
+
+        streak:
+            game.streak
     };
 
     localStorage.setItem(
@@ -78,6 +96,12 @@ function saveDailyProgress() {
         JSON.stringify(progress)
     );
 }
+
+
+// -----------------------------------
+// Load daily progress
+// -----------------------------------
+
 function loadDailyProgress() {
 
     const savedData =
@@ -92,6 +116,7 @@ function loadDailyProgress() {
 
     const today =
         new Date().toDateString();
+
 
     // Same day → resume progress
     if (progress.date === today) {
@@ -114,12 +139,14 @@ function loadDailyProgress() {
         streakValue.textContent =
             game.streak;
 
-        // Challenge already completed → restore result screen
+
+        // Challenge already completed
         if (game.completedToday) {
 
             game.status = "completed";
 
-            dailyResult.style.display = "block";
+            dailyResult.style.display =
+                "block";
 
             document
                 .getElementById("game")
@@ -130,6 +157,7 @@ function loadDailyProgress() {
 
             resultStreakValue.textContent =
                 game.streak;
+
 
             if (game.score === 500) {
 
@@ -158,20 +186,40 @@ function loadDailyProgress() {
             return;
         }
 
+
+        // Challenge is still in progress
+        dailyResult.style.display =
+            "none";
+
+        document
+            .getElementById("game")
+            .classList.remove("completed");
+
         return;
     }
 
+
+    // -----------------------------------
     // New day → start fresh
+    // -----------------------------------
+
     game.currentAnthem = 0;
+
     game.score = 0;
+
     game.completedToday = false;
 
+    game.status = "playing";
+
+
     // Check if yesterday's challenge was completed
-    const yesterday = new Date();
+    const yesterday =
+        new Date();
 
     yesterday.setDate(
         yesterday.getDate() - 1
     );
+
 
     if (
         progress.completed &&
@@ -186,119 +234,201 @@ function loadDailyProgress() {
         game.streak = 0;
     }
 
+
     scoreValue.textContent =
         game.score;
 
     streakValue.textContent =
         game.streak;
+
+    dailyResult.style.display =
+        "none";
+
+    document
+        .getElementById("game")
+        .classList.remove("completed");
+}
+
+
+// -----------------------------------
+// Render guess history
+// -----------------------------------
+
+function renderGuessHistory() {
+
+    guessHistory.innerHTML = "";
+
+    game.guesses.forEach(function (guess, index) {
+
+        const guessItem =
+            document.createElement("p");
+
+        guessItem.textContent =
+            `Attempt ${index + 1}: ${guess.country} ${guess.correct ? "✓" : "❌"}`;
+
+        guessHistory.appendChild(
+            guessItem
+        );
+    });
 }
 
 
 // -----------------------------------
 // Start a new anthem
 // -----------------------------------
+
 function newRound() {
 
     if (game.dailyCountries.length === 0) {
-        game.dailyCountries = getDailyCountries();
+
+        game.dailyCountries =
+            getDailyCountries();
     }
 
 
+    // -----------------------------------
     // Check if all 5 anthems are completed
-   game.status = "completed";
+    // -----------------------------------
 
-if (!game.completedToday) {
-    game.streak++;
-    streakValue.textContent = game.streak;
-    game.completedToday = true;
-}
+    if (game.currentAnthem >= 5) {
 
-saveDailyProgress();
-
-// Hide the normal game UI
-playbutton.disabled = true;
-guessButton.disabled = true;
-guessInput.disabled = true;
-
-// Show the result screen
-dailyResult.style.display = "block";
-document.getElementById("game").classList.add("completed");
-// Fill result data
-resultScore.textContent =
-    `${game.score} / 500`;
-
-resultStreakValue.textContent =
-    game.streak;
-
-// Performance message
-if (game.score === 500) {
-
-    resultMessage.textContent =
-        "🏆 Perfect Day!";
-
-} else if (game.score >= 400) {
-
-    resultMessage.textContent =
-        "🔥 Excellent Run!";
-
-} else if (game.score >= 200) {
-
-    resultMessage.textContent =
-        "👍 Good Run!";
-
-} else {
-
-    resultMessage.textContent =
-        "💪 Challenge Complete!";
-}
-
-roundStatus.textContent =
-    "🏆 Daily Challenge Complete!";
-
-message.textContent = "";
-
-return;
+        game.status = "completed";
 
 
+        if (!game.completedToday) {
+
+            game.streak++;
+
+            streakValue.textContent =
+                game.streak;
+
+            game.completedToday =
+                true;
+        }
 
 
+        saveDailyProgress();
+
+
+        // Hide normal game UI
+        playbutton.disabled = true;
+
+        guessButton.disabled = true;
+
+        guessInput.disabled = true;
+
+
+        // Show result screen
+        dailyResult.style.display =
+            "block";
+
+        document
+            .getElementById("game")
+            .classList.add("completed");
+
+
+        // Fill result data
+        resultScore.textContent =
+            `${game.score} / 500`;
+
+        resultStreakValue.textContent =
+            game.streak;
+
+
+        // Performance message
+        if (game.score === 500) {
+
+            resultMessage.textContent =
+                "🏆 Perfect Day!";
+
+        } else if (game.score >= 400) {
+
+            resultMessage.textContent =
+                "🔥 Excellent Run!";
+
+        } else if (game.score >= 200) {
+
+            resultMessage.textContent =
+                "👍 Good Run!";
+
+        } else {
+
+            resultMessage.textContent =
+                "💪 Challenge Complete!";
+        }
+
+
+        roundStatus.textContent =
+            "🏆 Daily Challenge Complete!";
+
+        message.textContent =
+            "";
+
+        return;
+    }
+
+
+    // -----------------------------------
     // Select today's current anthem
+    // -----------------------------------
+
     game.currentCountry =
-        game.dailyCountries[game.currentAnthem];
+        game.dailyCountries[
+            game.currentAnthem
+        ];
 
 
     game.audio =
-        new Audio(game.currentCountry.audio);
+        new Audio(
+            game.currentCountry.audio
+        );
 
 
-    game.audio.addEventListener("ended", function () {
+    game.audio.addEventListener(
+        "ended",
+        function () {
 
-        playbutton.textContent =
-            "▶ Play Anthem";
-    });
+            playbutton.textContent =
+                "▶ Play Anthem";
+        }
+    );
 
 
+    // -----------------------------------
     // Reset round-specific state
+    // -----------------------------------
+
     game.attempts = 6;
 
     attemptsRemaining.textContent =
         game.attempts;
 
-    game.status = "playing";
+    game.status =
+        "playing";
 
     game.guesses = [];
 
     renderGuessHistory();
 
 
+    // -----------------------------------
     // Reset UI
-    message.textContent = "";
+    // -----------------------------------
 
-    guessInput.value = "";
+    message.textContent =
+        "";
 
-    guessButton.disabled = false;
-    guessInput.disabled = false;
-    playbutton.disabled = false;
+    guessInput.value =
+        "";
+
+    guessButton.disabled =
+        false;
+
+    guessInput.disabled =
+        false;
+
+    playbutton.disabled =
+        false;
 
     playbutton.textContent =
         "▶ Play Anthem";
@@ -314,28 +444,31 @@ return;
 // Play / pause anthem
 // -----------------------------------
 
-playbutton.addEventListener("click", function () {
+playbutton.addEventListener(
+    "click",
+    function () {
 
-    if (game.status !== "playing") {
-        return;
+        if (game.status !== "playing") {
+            return;
+        }
+
+
+        if (game.audio.paused) {
+
+            game.audio.play();
+
+            playbutton.textContent =
+                "⏸ Pause Anthem";
+
+        } else {
+
+            game.audio.pause();
+
+            playbutton.textContent =
+                "▶ Play Anthem";
+        }
     }
-
-
-    if (game.audio.paused) {
-
-        game.audio.play();
-
-        playbutton.textContent =
-            "⏸ Pause Anthem";
-
-    } else {
-
-        game.audio.pause();
-
-        playbutton.textContent =
-            "▶ Play Anthem";
-    }
-});
+);
 
 
 // -----------------------------------
@@ -360,16 +493,23 @@ function submitGuess() {
 
 
     // Clear input
-    guessInput.value = "";
+    guessInput.value =
+        "";
 
 
+    // -----------------------------------
     // Check duplicate guesses
-    if (game.guesses.some(function (previousGuess) {
+    // -----------------------------------
 
-        return previousGuess.country.toLowerCase() ===
-               guess.toLowerCase();
+    if (
+        game.guesses.some(
+            function (previousGuess) {
 
-    })) {
+                return previousGuess.country.toLowerCase() ===
+                       guess.toLowerCase();
+            }
+        )
+    ) {
 
         message.textContent =
             "⚠️ You already guessed that!";
@@ -378,29 +518,44 @@ function submitGuess() {
     }
 
 
+    // -----------------------------------
     // Check answer
+    // -----------------------------------
+
     const normalizedGuess =
         guess.toLowerCase();
 
 
     const isCorrect =
         normalizedGuess ===
-        game.currentCountry.name.toLowerCase() ||
+        game.currentCountry.name.toLowerCase()
 
-        (game.currentCountry.aliases &&
+        ||
 
-        game.currentCountry.aliases.some(function (alias) {
+        (
+            game.currentCountry.aliases &&
 
-            return normalizedGuess ===
-                   alias.toLowerCase();
-        }));
+            game.currentCountry.aliases.some(
+                function (alias) {
+
+                    return normalizedGuess ===
+                           alias.toLowerCase();
+                }
+            )
+        );
 
 
+    // -----------------------------------
     // Store guess
+    // -----------------------------------
+
     game.guesses.push({
 
-        country: guess,
-        correct: isCorrect
+        country:
+            guess,
+
+        correct:
+            isCorrect
     });
 
 
@@ -411,7 +566,8 @@ function submitGuess() {
     // Stop anthem after guessing
     game.audio.pause();
 
-    game.audio.currentTime = 0;
+    game.audio.currentTime =
+        0;
 
     playbutton.textContent =
         "▶ Play Anthem";
@@ -432,14 +588,17 @@ function submitGuess() {
 
 
         game.score +=
-            scoreByAttempt[attemptNumber - 1];
+            scoreByAttempt[
+                attemptNumber - 1
+            ];
 
 
         scoreValue.textContent =
             game.score;
 
 
-        game.status = "won";
+        game.status =
+            "won";
 
 
         roundStatus.textContent =
@@ -451,16 +610,26 @@ function submitGuess() {
 
 
         // Disable controls temporarily
-        guessButton.disabled = true;
-        guessInput.disabled = true;
-        playbutton.disabled = true;
+        guessButton.disabled =
+            true;
+
+        guessInput.disabled =
+            true;
+
+        playbutton.disabled =
+            true;
 
 
         // Move to next anthem
         game.currentAnthem++;
+
         saveDailyProgress();
 
-        setTimeout(newRound, 1000);
+
+        setTimeout(
+            newRound,
+            1000
+        );
     }
 
 
@@ -476,10 +645,14 @@ function submitGuess() {
             game.attempts;
 
 
+        // -----------------------------------
         // No attempts left
+        // -----------------------------------
+
         if (game.attempts === 0) {
 
-            game.status = "lost";
+            game.status =
+                "lost";
 
 
             roundStatus.textContent =
@@ -491,20 +664,33 @@ function submitGuess() {
 
 
             // Disable controls
-            guessButton.disabled = true;
-            guessInput.disabled = true;
-            playbutton.disabled = true;
+            guessButton.disabled =
+                true;
+
+            guessInput.disabled =
+                true;
+
+            playbutton.disabled =
+                true;
 
 
             // Move to next anthem
             game.currentAnthem++;
 
+            saveDailyProgress();
 
-            setTimeout(newRound, 1500);
+
+            setTimeout(
+                newRound,
+                1500
+            );
         }
 
 
+        // -----------------------------------
         // Attempts remaining
+        // -----------------------------------
+
         else {
 
             roundStatus.textContent =
@@ -536,6 +722,7 @@ guessInput.addEventListener(
     function (event) {
 
         if (event.key === "Enter") {
+
             submitGuess();
         }
     }
@@ -548,6 +735,7 @@ guessInput.addEventListener(
 
 game.dailyCountries =
     getDailyCountries();
+
 loadDailyProgress();
 
 newRound();
