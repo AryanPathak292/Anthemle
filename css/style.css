@@ -306,3 +306,21 @@ button {
 #mainNav button.active {
     background: #2563eb;
 }
+#mainNav button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #374151;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+#mainNav button:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+#mainNav button:active {
+    transform: translateY(0);
+}
