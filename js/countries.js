@@ -90,8 +90,9 @@ const countries = [
 },
 {
     name:"Belgium",
-    anthem:"La Barbaconne",
-    audio:"assets/audio/belgium.mp3"
+   
+anthem: "La Brabançonne"
+,   audio:"assets/audio/belgium.mp3"
 },
 {
     name:"South Korea",
@@ -110,7 +111,7 @@ const countries = [
 },
 {
   name:"Turkey",
-  anthem:"İstiklâl Marşi",
+  anthem: "İstiklâl Marşi",
   audio:"assets/audio/turkey.mp3"
 },
 {

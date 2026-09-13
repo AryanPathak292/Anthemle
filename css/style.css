@@ -272,3 +272,33 @@ button {
 #game.completed #history {
     display: none;
 }
+#mainNav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+#mainNav button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #374151;
+    color: white;
+    cursor: pointer;
+}
+
+#mainNav button:hover {
+    background: #4b5563;
+}
+@media (max-width: 600px) {
+    #mainNav {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    #mainNav button {
+        flex: 1;
+        min-width: 100px;
+    }
+}
