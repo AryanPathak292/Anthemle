@@ -302,3 +302,7 @@ button {
         min-width: 100px;
     }
 }
+
+#mainNav button.active {
+    background: #2563eb;
+}
