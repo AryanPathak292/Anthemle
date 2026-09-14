@@ -11,7 +11,40 @@ const dailyResult = document.getElementById("dailyResult");
 const resultScore = document.querySelector("#resultScore strong");
 const resultMessage = document.querySelector("#resultMessage p");
 const resultStreakValue = document.getElementById("resultStreakValue");
+const gameSection = document.getElementById("game");
+const countriesPage = document.getElementById("countriesPage");
 
+const navButtons = document.querySelectorAll("#mainNav button");
+
+navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        navButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        if (button.textContent === "Home") {
+            gameSection.style.display = "block";
+            countriesPage.style.display = "none";
+        }
+
+        if (button.textContent === "Countries") {
+            gameSection.style.display = "none";
+            countriesPage.style.display = "block";
+        }
+    });
+});
+const countriesList = document.getElementById("countriesList");
+
+countries.forEach((country) => {
+    const countryCard = document.createElement("div");
+
+    countryCard.classList.add("countryCard");
+
+    countryCard.innerHTML = `
+    <h3>${country.flag} ${country.name}</h3>
+    <p>${country.anthem}</p>
+`;
+    countriesList.appendChild(countryCard);
+});
 const game = {
     currentCountry: null,
     audio: null,
