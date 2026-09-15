@@ -13,22 +13,56 @@ const resultMessage = document.querySelector("#resultMessage p");
 const resultStreakValue = document.getElementById("resultStreakValue");
 const gameSection = document.getElementById("game");
 const countriesPage = document.getElementById("countriesPage");
+const statsPage = document.getElementById("statsPage");
+const navButtons =
+    document.querySelectorAll("#navLinks button");
+    const currentStreakStat =
+    document.getElementById("currentStreakStat");
 
-const navButtons = document.querySelectorAll("#mainNav button");
+const bestStreakStat =
+    document.getElementById("bestStreakStat");
 
+const totalChallengesStat =
+    document.getElementById("totalChallengesStat");
+
+const totalScoreStat =
+    document.getElementById("totalScoreStat");
+    const menuToggle =
+    document.getElementById("menuToggle");
+menuToggle.addEventListener("click", () => {
+    navLinks.classList.toggle("show");
+});
+const navLinks =
+    document.getElementById("navLinks");
 navButtons.forEach((button) => {
     button.addEventListener("click", () => {
-        navButtons.forEach((btn) => btn.classList.remove("active"));
+
+        navButtons.forEach((btn) =>
+            btn.classList.remove("active")
+        );
+
         button.classList.add("active");
+
+        gameSection.style.display = "none";
+        countriesPage.style.display = "none";
+        statsPage.style.display = "none";
+        leaderboardPage.style.display = "none";
 
         if (button.textContent === "Home") {
             gameSection.style.display = "block";
-            countriesPage.style.display = "none";
         }
 
         if (button.textContent === "Countries") {
-            gameSection.style.display = "none";
             countriesPage.style.display = "block";
+        }
+
+        if (button.textContent === "Stats") {
+            statsPage.style.display = "block";
+            loadLifetimeStats();
+        }
+
+        if (button.textContent === "Leaderboard") {
+            leaderboardPage.style.display = "block";
         }
     });
 });
@@ -99,8 +133,58 @@ function getDailyCountries() {
 
     return shuffledCountries.slice(0, 5);
 }
+function updateLifetimeStats() {
 
+    const savedStats =
+        localStorage.getItem("anthemleStats");
 
+    let stats = savedStats
+        ? JSON.parse(savedStats)
+        : {
+            totalChallenges: 0,
+            totalScore: 0,
+            bestStreak: 0
+        };
+
+    stats.totalChallenges += 1;
+    stats.totalScore += game.score;
+
+    if (game.streak > stats.bestStreak) {
+        stats.bestStreak = game.streak;
+    }
+
+    localStorage.setItem(
+        "anthemleStats",
+        JSON.stringify(stats)
+    );
+}
+function loadLifetimeStats() {
+
+    const savedStats =
+        localStorage.getItem("anthemleStats");
+
+    currentStreakStat.textContent =
+        game.streak;
+
+    if (savedStats === null) {
+        bestStreakStat.textContent = 0;
+        totalChallengesStat.textContent = 0;
+        totalScoreStat.textContent = 0;
+        return;
+    }
+
+    const stats =
+        JSON.parse(savedStats);
+
+    bestStreakStat.textContent =
+        stats.bestStreak;
+
+    totalChallengesStat.textContent =
+        stats.totalChallenges;
+
+    totalScoreStat.textContent =
+        stats.totalScore;
+}
 // -----------------------------------
 // Save daily progress
 // -----------------------------------
@@ -323,11 +407,11 @@ function newRound() {
     // Check if all 5 anthems are completed
     // -----------------------------------
 
-    if (game.currentAnthem >= 5) {
-
+   if (game.currentAnthem >= 5) {
+    if (game.status !== "completed") {
         game.status = "completed";
-
-
+        updateLifetimeStats();
+    }
         if (!game.completedToday) {
 
             game.streak++;

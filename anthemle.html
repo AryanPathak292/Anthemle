@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,80 +13,170 @@
 <body>
 
     <header>
-        <h1>ANTHEMLE</h1>
+        <h1>ANTHMLE</h1>
         <p>Guess the country from its national anthem.</p>
-        <nav id="mainNav">
-<button class="active">Home</button>   
- <button>Countries</button>
 
-    <button>Stats</button>
-    <button>Leaderboard</button>
+        <nav id="mainNav">
+
+    <button id="menuToggle">☰</button>
+
+    <div id="navLinks">
+        <button class="active">Home</button>
+        <button>Countries</button>
+        <button>Stats</button>
+        <button>Leaderboard</button>
+    </div>
+
 </nav>
     </header>
 
     <main>
 
+        <!-- Game -->
         <section id="game">
             <h2>Today's Anthem</h2>
-<div id="roundStatus">
-    <p>New round!</p>
-</div>
+
+            <div id="roundStatus">
+                <p>New round!</p>
+            </div>
+
             <div id="anthemControls">
-<button id="playButton">▶ Play Anthem</button></div>
+                <button id="playButton">▶ Play Anthem</button>
+            </div>
 
-<div id="guessControls">
-    <input type="text" id="guessInput" placeholder="Enter your guess">
-    <button id="guessButton">Guess</button>
-</div>
-<div id="attempts">
-    <p>Attempts remaining: <span id="attemptsRemaining">6</span></p>
-</div>
-    <div id="score">
-    <p>Score: <span id="scoreValue">0</span></p>
-</div>
-<div id="streak">
-    <p>🔥 Streak: <span id="streakValue">0</span></p>
-</div>
-           <div id="feedback">
-    <p id="message"></p>
-</div>
+            <div id="guessControls">
+                <input
+                    type="text"
+                    id="guessInput"
+                    placeholder="Enter your guess"
+                >
+                <button id="guessButton">Guess</button>
+            </div>
 
-<div id="history">
-    <h3>Guess History</h3>
-    <div id="guessHistory"></div>
-</div>
-<div id="dailyResult">
-    <h2>🏆 Daily Challenge Complete!</h2>
+            <div id="attempts">
+                <p>
+                    Attempts remaining:
+                    <span id="attemptsRemaining">6</span>
+                </p>
+            </div>
 
-    <div id="resultScore">
-        <p>Your Score</p>
-        <strong>500 / 500</strong>
-    </div>
+            <div id="score">
+                <p>
+                    Score:
+                    <span id="scoreValue">0</span>
+                </p>
+            </div>
 
-    <div id="resultMessage">
-        <p>🔥 Perfect Day!</p>
-    </div>
+            <div id="streak">
+                <p>
+                    🔥 Streak:
+                    <span id="streakValue">0</span>
+                </p>
+            </div>
 
-    <p id="resultStreak">
-        🔥 Streak: <span id="resultStreakValue">0</span>
-    </p>
+            <div id="feedback">
+                <p id="message"></p>
+            </div>
 
-    <p id="resultTomorrow">
-        Come back tomorrow for a new challenge.
-    </p>
-</div>
+            <div id="history">
+                <h3>Guess History</h3>
+                <div id="guessHistory"></div>
+            </div>
+
+            <div id="dailyResult">
+                <h2>🏆 Daily Challenge Complete!</h2>
+
+                <div id="resultScore">
+                    <p>Your Score</p>
+                    <strong>500 / 500</strong>
+                </div>
+
+                <div id="resultMessage">
+                    <p>🔥 Perfect Day!</p>
+                </div>
+
+                <p id="resultStreak">
+                    🔥 Streak:
+                    <span id="resultStreakValue">0</span>
+                </p>
+
+                <p id="resultTomorrow">
+                    Come back tomorrow for a new challenge.
+                </p>
+            </div>
         </section>
-        <section id="countriesPage">
-    <h2>Countries</h2>
-    <p>Explore the countries featured in Anthemle.</p>
 
-    <div id="countriesList"></div>
-</section>
+
+        <!-- Countries -->
+        <section id="countriesPage">
+            <h2>Countries</h2>
+            <p>Explore the countries featured in Anthemle.</p>
+
+            <div id="countriesList"></div>
+        </section>
+
+
+        <!-- Stats -->
+        <section id="statsPage">
+            <h2>Stats</h2>
+            <p>Your Anthemle progress.</p>
+
+            <div id="statsList">
+
+                <div class="statCard">
+                    <h3>🔥 Current Streak</h3>
+                    <p id="currentStreakStat">0</p>
+                </div>
+
+                <div class="statCard">
+                    <h3>🏆 Best Streak</h3>
+                    <p id="bestStreakStat">0</p>
+                </div>
+
+                <div class="statCard">
+                    <h3>🎯 Challenges Completed</h3>
+                    <p id="totalChallengesStat">0</p>
+                </div>
+
+                <div class="statCard">
+                    <h3>⭐ Total Score</h3>
+                    <p id="totalScoreStat">0</p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Leaderboard -->
+        <section id="leaderboardPage">
+            <h2>Leaderboard</h2>
+            <p>See how you rank against other Anthemle players.</p>
+
+            <div id="leaderboardList">
+
+                <div class="leaderboardHeader">
+                    <span>Rank</span>
+                    <span>Player</span>
+                    <span>Score</span>
+                    <span>Streak</span>
+                </div>
+
+                <div class="leaderboardEmpty">
+                    <h3>🌍 Global Leaderboard</h3>
+                    <p>
+                        Compete with players around the world.
+                        Online rankings will be available soon.
+                    </p>
+                </div>
+
+            </div>
+        </section>
 
     </main>
 
-<script src="js/countries.js"></script>
-<script src="js/game.js"></script>
+    <script src="js/countries.js"></script>
+    <script src="js/game.js"></script>
+
 </body>
 
 </html>
