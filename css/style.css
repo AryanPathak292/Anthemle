@@ -460,8 +460,15 @@ button {
 }
 @media (max-width: 600px) {
 
+    header {
+        text-align: left;
+    }
+
     #mainNav {
+        display: flex;
         justify-content: flex-end;
+        width: 100%;
+        margin-top: 20px;
     }
 
     #menuToggle {
@@ -480,7 +487,6 @@ button {
         width: 100%;
         margin-top: 10px;
     }
-
     #navLinks.show {
         display: flex;
     }
@@ -488,4 +494,25 @@ button {
     #navLinks button {
         width: 100%;
     }
+}
+#shareResultButton {
+    margin-top: 18px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #22c55e;
+    color: #052e16;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+#shareResultButton:hover {
+    background: #16a34a;
+    transform: translateY(-1px);
+}
+
+#shareResultButton:active {
+    transform: translateY(0);
 }

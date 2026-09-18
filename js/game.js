@@ -13,7 +13,16 @@ const resultMessage = document.querySelector("#resultMessage p");
 const resultStreakValue = document.getElementById("resultStreakValue");
 const gameSection = document.getElementById("game");
 const countriesPage = document.getElementById("countriesPage");
-const statsPage = document.getElementById("statsPage");
+const statsPage = document.getElementById("statsPage"
+
+);
+const shareResultButton =
+    document.getElementById("shareResultButton");
+// Future online leaderboard data
+// Will eventually come from the backend.
+const leaderboardData = [];
+const averageScoreStat =
+    document.getElementById("averageScoreStat");
 const navButtons =
     document.querySelectorAll("#navLinks button");
     const currentStreakStat =
@@ -25,13 +34,10 @@ const bestStreakStat =
 const totalChallengesStat =
     document.getElementById("totalChallengesStat");
 
-const totalScoreStat =
-    document.getElementById("totalScoreStat");
-    const menuToggle =
-    document.getElementById("menuToggle");
-menuToggle.addEventListener("click", () => {
-    navLinks.classList.toggle("show");
-});
+
+const leaderboardPage =
+    document.getElementById("leaderboardPage");
+    
 const navLinks =
     document.getElementById("navLinks");
 navButtons.forEach((button) => {
@@ -42,7 +48,7 @@ navButtons.forEach((button) => {
         );
 
         button.classList.add("active");
-
+        navLinks.classList.remove("show");
         gameSection.style.display = "none";
         countriesPage.style.display = "none";
         statsPage.style.display = "none";
@@ -66,6 +72,13 @@ navButtons.forEach((button) => {
         }
     });
 });
+const totalScoreStat =
+    document.getElementById("totalScoreStat");
+    const menuToggle =
+    document.getElementById("menuToggle");
+menuToggle.addEventListener("click", () => {
+    navLinks.classList.toggle("show");
+});
 const countriesList = document.getElementById("countriesList");
 
 countries.forEach((country) => {
@@ -79,6 +92,8 @@ countries.forEach((country) => {
 `;
     countriesList.appendChild(countryCard);
 });
+// Current game/session state
+// Stores what is happening during the active challenge.
 const game = {
     currentCountry: null,
     audio: null,
@@ -167,6 +182,7 @@ function loadLifetimeStats() {
         game.streak;
 
     if (savedStats === null) {
+        averageScoreStat.textContent = 0;
         bestStreakStat.textContent = 0;
         totalChallengesStat.textContent = 0;
         totalScoreStat.textContent = 0;
@@ -184,7 +200,45 @@ function loadLifetimeStats() {
 
     totalScoreStat.textContent =
         stats.totalScore;
+        averageScoreStat.textContent =
+    stats.totalChallenges === 0
+        ? 0
+        : Math.round(
+            stats.totalScore / stats.totalChallenges
+        );
 }
+
+function shareResults() {
+
+const resultText =
+`🌍 ANTHEMLE
+🎯 Score: ${game.score}/500
+🔥 Streak: ${game.streak}
+
+Daily Challenge completed!
+
+Can you beat my score?
+Play Anthemle!`;
+
+    navigator.clipboard.writeText(resultText)
+        .then(() => {
+            shareResultButton.textContent =
+                "✅ Results Copied!";
+
+            setTimeout(() => {
+                shareResultButton.textContent =
+                    "📋 Copy Results";
+            }, 2000);
+        })
+        .catch(() => {
+         shareResultButton.textContent =
+                "❌ Copy Failed";
+        });
+}
+shareResultButton.addEventListener(
+    "click",
+    shareResults
+);
 // -----------------------------------
 // Save daily progress
 // -----------------------------------
