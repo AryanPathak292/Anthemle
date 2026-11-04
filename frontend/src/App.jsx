@@ -104,6 +104,9 @@ function App() {
       guesses: sameDay && Array.isArray(saved?.guesses)
         ? saved.guesses
         : [],
+      roundResults: sameDay && Array.isArray(saved?.roundResults)
+        ? saved.roundResults
+        : [],
       score: sameDay ? saved?.score ?? 0 : 0,
       streak: sameDay
         ? saved?.streak ?? 0
@@ -138,6 +141,7 @@ function App() {
       streak: game.streak,
       attempts: game.attempts,
       guesses: game.guesses,
+      roundResults: game.roundResults,
       status: game.status,
       inputGuess: game.inputGuess
     };
@@ -348,6 +352,15 @@ function App() {
       setGame(prev => ({
         ...prev,
         guesses: updatedGuesses,
+        roundResults: [
+          ...prev.roundResults,
+          {
+            country: prev.currentCountry.name,
+            won: true,
+            attemptsUsed: updatedGuesses.length,
+            points
+          }
+        ],
         score: prev.score + points,
         status: 'won',
         inputGuess: '',
@@ -363,6 +376,17 @@ function App() {
     setGame(prev => ({
       ...prev,
       guesses: updatedGuesses,
+      roundResults: remainingAttempts === 0
+        ? [
+            ...prev.roundResults,
+            {
+              country: prev.currentCountry.name,
+              won: false,
+              attemptsUsed: updatedGuesses.length,
+              points: 0
+            }
+          ]
+        : prev.roundResults,
       attempts: remainingAttempts,
       status: remainingAttempts === 0 ? 'lost' : 'playing',
       inputGuess: '',
@@ -397,7 +421,30 @@ function App() {
   const averageScore = stats.totalChallenges > 0
     ? Math.round(stats.totalScore / stats.totalChallenges)
     : 0;
+const shareResults = async () => {
+  const resultLines = game.roundResults.map(result =>
+    `${result.won ? '🟩' : '⬛'} ${result.country} — ${result.points} points`
+  );
 
+  const shareText = [
+    '🎵 ANTHMLE — Daily Challenge',
+    `🏆 Score: ${game.score}/500`,
+    '',
+    ...resultLines,
+    '',
+    `🔥 Streak: ${game.streak}`,
+    '',
+    'Can you beat my score?'
+  ].join('\n');
+
+  try {
+    await navigator.clipboard.writeText(shareText);
+    setMessage('Results copied! Share them with your friends 🎉');
+  } catch (error) {
+    console.error('Could not copy results:', error);
+    setMessage('Unable to copy results. Please try again.');
+  }
+};
   return (
     <>
       <header>
@@ -534,11 +581,46 @@ function App() {
               </p>
             </div>
 
+            <div id="roundResults">
+              <h3>Today's Results</h3>
+              {game.roundResults.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', padding: '10px' }}>Anthem</th>
+                      <th style={{ textAlign: 'left', padding: '10px' }}>Result</th>
+                      <th style={{ textAlign: 'right', padding: '10px' }}>Points</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {game.roundResults.map((result, index) => (
+                      <tr key={`${result.country}-${index}`}>
+                        <td style={{ padding: '10px' }}>{result.country}</td>
+                        <td style={{ padding: '10px' }}>
+                          {result.won
+                            ? `Correct — attempt ${result.attemptsUsed}`
+                            : 'Not guessed'}
+                        </td>
+                        <td style={{ textAlign: 'right', padding: '10px' }}>
+                          {result.points}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>Round-by-round results are not available for this saved challenge.</p>
+              )}
+            </div>
+
             <p id="resultStreak">
               🔥 Streak: <span id="resultStreakValue">{game.streak}</span>
             </p>
 
             <p id="resultTomorrow">Come back tomorrow for a new challenge.</p>
+            <button id="shareButton" onClick={shareResults}>
+  📋 Share Results
+</button>
           </div>
         </section>
 
