@@ -438,11 +438,20 @@ const shareResults = async () => {
   ].join('\n');
 
   try {
-    await navigator.clipboard.writeText(shareText);
-    setMessage('Results copied! Share them with your friends 🎉');
+    if (navigator.share) {
+      await navigator.share({
+        title: 'Anthemle Daily Challenge',
+        text: shareText
+      });
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      setMessage('Results copied! Share them with your friends 🎉');
+    }
   } catch (error) {
-    console.error('Could not copy results:', error);
-    setMessage('Unable to copy results. Please try again.');
+    if (error.name !== 'AbortError') {
+      console.error('Could not share results:', error);
+      setMessage('Unable to share results. Please try again.');
+    }
   }
 };
   return (
