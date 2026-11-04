@@ -3,6 +3,47 @@ import { useState, useRef, useEffect } from 'react';
 import './style.css';
 import countries from './countries';
 
+const getTodayDate = () => {
+  const date = new Date();
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+};
+
+const getYesterdayDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+};
+
+const getDailyCountries = () => {
+  const dateString = getTodayDate();
+  let seed = 0;
+
+  for (let i = 0; i < dateString.length; i++) {
+    seed = (seed * 31 + dateString.charCodeAt(i)) % 100000;
+  }
+
+  const shuffled = [...countries];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    seed = (seed * 9301 + 49297) % 233280;
+    const index = Math.floor((seed / 233280) * (i + 1));
+
+    [shuffled[i], shuffled[index]] = [shuffled[index], shuffled[i]];
+  }
+
+  return shuffled.slice(0, 5);
+};
+
+const readStorage = (key, fallback) => {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch (error) {
+    console.error(`Could not read ${key}:`, error);
+    return fallback;
+  }
+};
+
 function App() {
   const [activePage, setActivePage] = useState('game');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -10,6 +51,7 @@ function App() {
   const [message, setMessage] = useState('');
 
   const audioRef = useRef(null);
+  const transitionTimer = useRef(null);
 
   const pages = [
     { name: 'Home', id: 'game' },
@@ -23,327 +65,239 @@ function App() {
     setMenuOpen(false);
   };
 
-  // -----------------------------------
-  // Date helpers
-  // -----------------------------------
-
-  const getTodayDate = () => {
-    const today = new Date();
-
-    return `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-  };
-
-  const getYesterdayDate = () => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    return `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`;
-  };
-
-  // -----------------------------------
-  // Daily country selection
-  // -----------------------------------
-
-  const getDailyCountries = () => {
-    const today = new Date();
-
-    const dateString =
-      `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-
-    let seed = 0;
-
-    for (let i = 0; i < dateString.length; i++) {
-      seed = (seed * 31 + dateString.charCodeAt(i)) % 100000;
-    }
-
-    const shuffledCountries = [...countries];
-
-    for (let i = shuffledCountries.length - 1; i > 0; i--) {
-      seed = (seed * 9301 + 49297) % 233280;
-
-      const randomIndex =
-        Math.floor((seed / 233280) * (i + 1));
-
-      [
-        shuffledCountries[i],
-        shuffledCountries[randomIndex]
-      ] = [
-        shuffledCountries[randomIndex],
-        shuffledCountries[i]
-      ];
-    }
-
-    return shuffledCountries.slice(0, 5);
-  };
-
-  // -----------------------------------
-  // Load saved daily progress
-  // -----------------------------------
-
+  // Load daily progress before the first render.
   const [game, setGame] = useState(() => {
     const dailyCountries = getDailyCountries();
     const today = getTodayDate();
     const yesterday = getYesterdayDate();
 
-    let savedProgress = null;
+    const saved = readStorage('anthemleDailyProgress', null);
 
-    try {
-      savedProgress = JSON.parse(
-        localStorage.getItem('anthemleDailyProgress') || 'null'
-      );
-    } catch (error) {
-      console.error('Could not read saved progress:', error);
-    }
-
-    const isSameDay = savedProgress?.date === today;
-
+    const sameDay = saved?.date === today;
     const completedYesterday =
-      savedProgress?.date === yesterday &&
-      savedProgress?.completed === true;
+      saved?.date === yesterday && saved?.completed === true;
 
-    const currentAnthem = isSameDay
-      ? Math.min(savedProgress?.currentAnthem ?? 0, 5)
+    const currentAnthem = sameDay
+      ? Math.min(saved.currentAnthem ?? 0, 5)
       : 0;
 
-    const completedToday =
-      isSameDay && savedProgress?.completed === true;
+    const completedToday = sameDay && saved?.completed === true;
 
-    let streak = 0;
+    // If the previous round was just won/lost, the currentAnthem
+    // already points to the next round.
+    const savedStatus = sameDay ? saved?.status : 'playing';
 
-    if (isSameDay) {
-      streak = savedProgress?.streak ?? 0;
-    } else if (completedYesterday) {
-      streak = savedProgress?.streak ?? 0;
-    }
+    const currentCountryIndex =
+      savedStatus === 'won' || savedStatus === 'lost'
+        ? currentAnthem - 1
+        : currentAnthem;
+
+    const currentCountry =
+      currentCountryIndex >= 0 && currentCountryIndex < 5
+        ? dailyCountries[currentCountryIndex]
+        : null;
 
     return {
-      currentCountry:
-        currentAnthem < 5 ? dailyCountries[currentAnthem] : null,
-      attempts: 6,
-      status: completedToday ? 'completed' : 'playing',
-      guesses: [],
-      score: isSameDay ? savedProgress?.score ?? 0 : 0,
-      streak,
+      currentCountry,
+      attempts: sameDay ? saved?.attempts ?? 6 : 6,
+      status: completedToday ? 'completed' : savedStatus || 'playing',
+      guesses: sameDay && Array.isArray(saved?.guesses)
+        ? saved.guesses
+        : [],
+      score: sameDay ? saved?.score ?? 0 : 0,
+      streak: sameDay
+        ? saved?.streak ?? 0
+        : completedYesterday
+          ? saved?.streak ?? 0
+          : 0,
       dailyCountries,
       currentAnthem,
       completedToday,
-      inputGuess: ''
+      inputGuess: sameDay ? saved?.inputGuess ?? '' : ''
     };
   });
 
-  // -----------------------------------
-  // Lifetime statistics
-  // -----------------------------------
-
   const [stats, setStats] = useState(() => {
-    try {
-      const savedStats = JSON.parse(
-        localStorage.getItem('anthemleStats') || 'null'
-      );
+    const saved = readStorage('anthemleStats', {});
 
-      return {
-        totalChallenges: savedStats?.totalChallenges ?? 0,
-        totalScore: savedStats?.totalScore ?? 0,
-        bestStreak: savedStats?.bestStreak ?? 0,
-        lastCompletedDate: savedStats?.lastCompletedDate ?? null
-      };
-    } catch (error) {
-      console.error('Could not read lifetime stats:', error);
-
-      return {
-        totalChallenges: 0,
-        totalScore: 0,
-        bestStreak: 0,
-        lastCompletedDate: null
-      };
-    }
+    return {
+      totalChallenges: saved.totalChallenges ?? 0,
+      totalScore: saved.totalScore ?? 0,
+      bestStreak: saved.bestStreak ?? 0,
+      lastCompletedDate: saved.lastCompletedDate ?? null
+    };
   });
 
-  // -----------------------------------
-  // Save daily progress automatically
-  // -----------------------------------
-
+  // Save the complete game state whenever it changes.
   useEffect(() => {
     const progress = {
       date: getTodayDate(),
       currentAnthem: game.currentAnthem,
       score: game.score,
       completed: game.completedToday,
-      streak: game.streak
+      streak: game.streak,
+      attempts: game.attempts,
+      guesses: game.guesses,
+      status: game.status,
+      inputGuess: game.inputGuess
     };
 
-    localStorage.setItem(
-      'anthemleDailyProgress',
-      JSON.stringify(progress)
-    );
-  }, [
-    game.currentAnthem,
-    game.score,
-    game.completedToday,
-    game.streak
-  ]);
+    try {
+      localStorage.setItem(
+        'anthemleDailyProgress',
+        JSON.stringify(progress)
+      );
+    } catch (error) {
+      console.error('Could not save daily progress:', error);
+    }
+  }, [game]);
 
-  // -----------------------------------
-  // Save lifetime statistics
-  // -----------------------------------
-
+  // Save lifetime statistics.
   useEffect(() => {
-    localStorage.setItem(
-      'anthemleStats',
-      JSON.stringify(stats)
-    );
+    try {
+      localStorage.setItem('anthemleStats', JSON.stringify(stats));
+    } catch (error) {
+      console.error('Could not save lifetime stats:', error);
+    }
   }, [stats]);
 
-  // Count a completed daily challenge only once.
+  // Count a completed challenge exactly once.
   useEffect(() => {
     if (!game.completedToday) return;
 
     const today = getTodayDate();
 
-    if (stats.lastCompletedDate === today) return;
+    setStats(prev => {
+      if (prev.lastCompletedDate === today) {
+        return prev;
+      }
 
-    setStats(prev => ({
-      ...prev,
-      totalChallenges: prev.totalChallenges + 1,
-      totalScore: prev.totalScore + game.score,
-      bestStreak: Math.max(prev.bestStreak, game.streak),
-      lastCompletedDate: today
-    }));
-  }, [
-    game.completedToday,
-    game.score,
-    game.streak,
-    stats.lastCompletedDate
-  ]);
+      return {
+        ...prev,
+        totalChallenges: prev.totalChallenges + 1,
+        totalScore: prev.totalScore + game.score,
+        bestStreak: Math.max(prev.bestStreak, game.streak),
+        lastCompletedDate: today
+      };
+    });
+  }, [game.completedToday, game.score, game.streak]);
 
-  // -----------------------------------
-  // Stop and clean up audio
-  // -----------------------------------
-
+  // Audio cleanup.
   useEffect(() => {
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
+
+      if (transitionTimer.current) {
+        clearTimeout(transitionTimer.current);
+      }
     };
   }, []);
 
-  // -----------------------------------
-  // Start the first round
-  // -----------------------------------
-
+  // Initialise audio for the restored round.
   useEffect(() => {
-    if (!game.currentCountry && game.status !== 'completed') {
-      newRound();
+    if (game.status === 'completed') return;
+
+    if (game.status === 'won' || game.status === 'lost') {
+      advanceRound();
+      return;
     }
 
-    // Initialisation only.
+    if (game.currentCountry) {
+      createAudio(game.currentCountry);
+    } else {
+      startRound(0);
+    }
+
+    // Run only once on initial mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -----------------------------------
-  // Start a new round
-  // -----------------------------------
-
-  const newRound = () => {
-    if (game.currentAnthem >= 5) {
-      setGame(prev => {
-        if (prev.completedToday) return prev;
-
-        return {
-          ...prev,
-          currentCountry: null,
-          status: 'completed',
-          completedToday: true,
-          streak: prev.streak + 1
-        };
-      });
-
-      setIsPlaying(false);
-      return;
-    }
-
-    const currentCountry =
-      game.dailyCountries[game.currentAnthem];
-
-    if (!currentCountry) {
-      console.error('No country found for this round.');
-      return;
-    }
-
-    console.log('Selected country:', currentCountry);
-    console.log('Audio path:', currentCountry.audio);
-
-    // Stop previous audio.
+  // Create audio for a country.
+  const createAudio = (country) => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
 
-    // Create the new audio player.
-    const audio = new Audio(currentCountry.audio);
+    const audio = new Audio(country.audio);
 
     audio.addEventListener('ended', () => {
       setIsPlaying(false);
     });
 
-    audio.addEventListener('canplaythrough', () => {
-      console.log('Anthem loaded successfully:', currentCountry.name);
-    });
-
     audio.addEventListener('error', () => {
-      console.error(
-        'Audio loading failed:',
-        currentCountry.audio,
-        audio.error
-      );
-
-      setMessage(
-        `Unable to load the anthem for ${currentCountry.name}. Check the console.`
-      );
-
+      console.error('Audio loading failed:', country.audio);
+      setMessage(`Unable to load the anthem for ${country.name}.`);
       setIsPlaying(false);
     });
 
     audioRef.current = audio;
+  };
+
+  // Start a particular round.
+  const startRound = (roundIndex) => {
+    if (roundIndex >= 5) {
+      setGame(prev => ({
+        ...prev,
+        currentCountry: null,
+        status: 'completed',
+        completedToday: true,
+        streak: prev.completedToday ? prev.streak : prev.streak + 1
+      }));
+
+      setIsPlaying(false);
+      return;
+    }
+
+    const country = game.dailyCountries[roundIndex];
+
+    if (!country) {
+      console.error('Country not found for round:', roundIndex);
+      return;
+    }
+
+    createAudio(country);
 
     setGame(prev => ({
       ...prev,
-      currentCountry,
+      currentCountry: country,
+      currentAnthem: roundIndex,
       attempts: 6,
-      status: 'playing',
       guesses: [],
-      inputGuess: ''
+      inputGuess: '',
+      status: 'playing'
     }));
 
     setMessage('');
     setIsPlaying(false);
   };
 
-  // -----------------------------------
-  // Play / pause anthem
-  // -----------------------------------
-
-  const handlePlayPause = () => {
-    if (game.status !== 'playing' || !audioRef.current) {
-      console.warn('Audio is not initialised yet.');
-      return;
+  // Move to the next round.
+  const advanceRound = () => {
+    if (transitionTimer.current) {
+      clearTimeout(transitionTimer.current);
     }
+
+    const nextRound = game.currentAnthem;
+
+    transitionTimer.current = setTimeout(() => {
+      startRound(nextRound);
+    }, game.status === 'won' ? 1000 : 1500);
+  };
+
+  // Play / pause anthem.
+  const handlePlayPause = () => {
+    if (game.status !== 'playing' || !audioRef.current) return;
 
     if (audioRef.current.paused) {
       audioRef.current.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
+        .then(() => setIsPlaying(true))
         .catch(error => {
           console.error('Audio playback failed:', error);
-
-          setMessage(
-            'Audio could not be played. Check the console and audio path.'
-          );
-
-          setIsPlaying(false);
+          setMessage('Audio could not be played.');
         });
     } else {
       audioRef.current.pause();
@@ -351,22 +305,15 @@ function App() {
     }
   };
 
-  // -----------------------------------
-  // Submit guess
-  // -----------------------------------
-
+  // Submit a guess.
   const submitGuess = () => {
-    if (game.status !== 'playing' || !game.currentCountry) {
-      return;
-    }
+    if (game.status !== 'playing' || !game.currentCountry) return;
 
     const guess = game.inputGuess.trim();
-
     if (!guess) return;
 
     const alreadyGuessed = game.guesses.some(
-      previous =>
-        previous.country.toLowerCase() === guess.toLowerCase()
+      previous => previous.country.toLowerCase() === guess.toLowerCase()
     );
 
     if (alreadyGuessed) {
@@ -426,47 +373,35 @@ function App() {
     }));
 
     if (remainingAttempts === 0) {
-      setMessage(
-        `💀 Round over! The answer was ${game.currentCountry.name}.`
-      );
+      setMessage(`💀 Round over! The answer was ${game.currentCountry.name}.`);
     } else {
-      setMessage(
-        `❌ Incorrect! ${remainingAttempts} attempts remaining.`
-      );
+      setMessage(`❌ Incorrect! ${remainingAttempts} attempts remaining.`);
     }
   };
 
-  // -----------------------------------
-  // Automatically advance after a round
-  // -----------------------------------
-
+  // Automatically advance after a round.
   useEffect(() => {
-    if (game.status !== 'won' && game.status !== 'lost') {
-      return;
-    }
+    if (game.status !== 'won' && game.status !== 'lost') return;
 
-    const delay = setTimeout(() => {
-      newRound();
-    }, game.status === 'won' ? 1000 : 1500);
+    advanceRound();
 
-    return () => clearTimeout(delay);
+    return () => {
+      if (transitionTimer.current) {
+        clearTimeout(transitionTimer.current);
+      }
+    };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.status, game.currentAnthem]);
 
-  // -----------------------------------
-  // Render
-  // -----------------------------------
-
-  const averageScore =
-    stats.totalChallenges > 0
-      ? Math.round(stats.totalScore / stats.totalChallenges)
-      : 0;
+  const averageScore = stats.totalChallenges > 0
+    ? Math.round(stats.totalScore / stats.totalChallenges)
+    : 0;
 
   return (
     <>
       <header>
-        <h1>ANTEHMLE</h1>
+        <h1>ANTHMLE</h1>
         <p>Guess the country from its national anthem.</p>
 
         <nav id="mainNav">
@@ -506,7 +441,7 @@ function App() {
               {game.status === 'completed'
                 ? '🏆 Daily Challenge Complete!'
                 : game.currentCountry
-                  ? `🎵 Anthem ${game.currentAnthem + 1} / 5`
+                  ? `🎵 Anthem ${game.currentAnthem } / 5`
                   : 'Loading anthem...'}
             </p>
           </div>
@@ -528,12 +463,10 @@ function App() {
               placeholder="Enter your guess"
               value={game.inputGuess}
               disabled={game.status !== 'playing'}
-              onChange={e =>
-                setGame(prev => ({
-                  ...prev,
-                  inputGuess: e.target.value
-                }))
-              }
+              onChange={e => setGame(prev => ({
+                ...prev,
+                inputGuess: e.target.value
+              }))}
               onKeyDown={e => {
                 if (e.key === 'Enter') submitGuess();
               }}
@@ -550,21 +483,16 @@ function App() {
 
           <div id="attempts">
             <p>
-              Attempts remaining:{' '}
-              <span id="attemptsRemaining">{game.attempts}</span>
+              Attempts remaining: <span id="attemptsRemaining">{game.attempts}</span>
             </p>
           </div>
 
           <div id="score">
-            <p>
-              Score: <span id="scoreValue">{game.score}</span>
-            </p>
+            <p>Score: <span id="scoreValue">{game.score}</span></p>
           </div>
 
           <div id="streak">
-            <p>
-              🔥 Streak: <span id="streakValue">{game.streak}</span>
-            </p>
+            <p>🔥 Streak: <span id="streakValue">{game.streak}</span></p>
           </div>
 
           <div id="feedback">
@@ -585,9 +513,7 @@ function App() {
 
           <div
             id="dailyResult"
-            style={{
-              display: game.status === 'completed' ? 'block' : 'none'
-            }}
+            style={{ display: game.status === 'completed' ? 'block' : 'none' }}
           >
             <h2>🏆 Daily Challenge Complete!</h2>
 
@@ -612,18 +538,14 @@ function App() {
               🔥 Streak: <span id="resultStreakValue">{game.streak}</span>
             </p>
 
-            <p id="resultTomorrow">
-              Come back tomorrow for a new challenge.
-            </p>
+            <p id="resultTomorrow">Come back tomorrow for a new challenge.</p>
           </div>
         </section>
 
         {/* Countries */}
         <section
           id="countriesPage"
-          style={{
-            display: activePage === 'countriesPage' ? 'block' : 'none'
-          }}
+          style={{ display: activePage === 'countriesPage' ? 'block' : 'none' }}
         >
           <h2>Countries</h2>
           <p>Explore the countries featured in Anthemle.</p>
@@ -677,9 +599,7 @@ function App() {
         {/* Leaderboard */}
         <section
           id="leaderboardPage"
-          style={{
-            display: activePage === 'leaderboardPage' ? 'block' : 'none'
-          }}
+          style={{ display: activePage === 'leaderboardPage' ? 'block' : 'none' }}
         >
           <h2>Leaderboard</h2>
           <p>See how you rank against other Anthemle players.</p>
