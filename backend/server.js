@@ -1,5 +1,5 @@
 const dns = require('node:dns');
-
+const countryRoutes = require('./routes/countryRoutes');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 const express = require('express');
 const cors = require('cors');
@@ -12,7 +12,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-
+app.use('/api/countries', countryRoutes);
 // Health check route
 app.get('/api/health', (req, res) => {
     res.status(200).json({
