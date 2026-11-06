@@ -9,9 +9,19 @@ const countrySchema = new mongoose.Schema({
         trim: true
     },
 
+    flag: {
+        type: String,
+        required: true
+    },
+
     aliases: {
         type: [String],
         default: []
+    },
+
+    anthem: {
+        type: String,
+        required: true
     },
 
     audioFile: {
@@ -19,7 +29,6 @@ const countrySchema = new mongoose.Schema({
         required: true,
         trim: true
     }
-
 }, {
     timestamps: true
 });

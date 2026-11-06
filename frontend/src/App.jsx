@@ -457,7 +457,7 @@ const shareResults = async () => {
   return (
     <>
       <header>
-        <h1>ANTHMLE</h1>
+        <h1>ANTEHMLE</h1>
         <p>Guess the country from its national anthem.</p>
 
         <nav id="mainNav">
@@ -497,45 +497,51 @@ const shareResults = async () => {
               {game.status === 'completed'
                 ? '🏆 Daily Challenge Complete!'
                 : game.currentCountry
-                  ? `🎵 Anthem ${game.currentAnthem } / 5`
-                  : 'Loading anthem...'}
+                  ? `🎵 Anthem ${game.currentAnthem+1 } / 5`
+                  : 'Loading anthem...'
+                  }
             </p>
           </div>
+{game.status !== 'completed' && (
+  <>
+    <div id="anthemControls">
+      <button
+        id="playButton"
+        onClick={handlePlayPause}
+        disabled={!game.currentCountry || game.status !== 'playing'}
+      >
+        {isPlaying ? '⏸ Pause Anthem' : '▶ Play Anthem'}
+      </button>
+    </div>
 
-          <div id="anthemControls">
-            <button
-              id="playButton"
-              onClick={handlePlayPause}
-              disabled={!game.currentCountry || game.status !== 'playing'}
-            >
-              {isPlaying ? '⏸ Pause Anthem' : '▶ Play Anthem'}
-            </button>
-          </div>
+    <div id="guessControls">
+      <input
+        type="text"
+        id="guessInput"
+        placeholder="Enter your guess"
+        value={game.inputGuess}
+        disabled={game.status !== 'playing'}
+        onChange={e => setGame(prev => ({
+          ...prev,
+          inputGuess: e.target.value
+        }))}
+        onKeyDown={e => {
+          if (e.key === 'Enter') submitGuess();
+        }}
+      />
 
-          <div id="guessControls">
-            <input
-              type="text"
-              id="guessInput"
-              placeholder="Enter your guess"
-              value={game.inputGuess}
-              disabled={game.status !== 'playing'}
-              onChange={e => setGame(prev => ({
-                ...prev,
-                inputGuess: e.target.value
-              }))}
-              onKeyDown={e => {
-                if (e.key === 'Enter') submitGuess();
-              }}
-            />
+      <button
+        id="guessButton"
+        onClick={submitGuess}
+        disabled={game.status !== 'playing'}
+      >
+        Guess
+      </button>
+    </div>
+  </>
+)}
 
-            <button
-              id="guessButton"
-              onClick={submitGuess}
-              disabled={game.status !== 'playing'}
-            >
-              Guess
-            </button>
-          </div>
+          
 
           <div id="attempts">
             <p>
