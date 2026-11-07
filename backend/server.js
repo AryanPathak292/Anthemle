@@ -4,7 +4,7 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-
+const authRoutes = require('./routes/authRoutes');
 const connectDB = require('./config/db');
 
 const app = express();
@@ -13,6 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/countries', countryRoutes);
+app.use('/api/auth', authRoutes);
 // Health check route
 app.get('/api/health', (req, res) => {
     res.status(200).json({
